@@ -34,6 +34,14 @@ export class AppointmentController {
     };
   }
 
+  @Get('/type')
+  async findAllTypes() {
+    return {
+      success: true,
+      types: await this.appointmentService.findAllTypes(),
+    };
+  }
+
   @Get('/employees')
   async employeesFindAll(
     @Query('startDate') startDate?: string,

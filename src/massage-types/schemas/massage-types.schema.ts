@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
-export const AppointmentTypeSchema = new mongoose.Schema({
+export const MassageTypeSchema = new Schema({
   name: { type: String, required: true },
   price: { type: Number, required: true },
   newPrice: { type: Number, required: false, default: null },

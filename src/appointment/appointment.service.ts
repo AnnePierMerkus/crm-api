@@ -41,6 +41,16 @@ export class AppointmentService {
     });
   }
 
+  async findAllTypes() {
+    const types = await this.appointmentTypeModel.find().exec();
+
+    if (!types) {
+      throw new HttpException('No types found', HttpStatus.BAD_REQUEST);
+    }
+
+    return types;
+  }
+
   async employeeFindBy({
                          startDate,
                          endDate,
@@ -84,7 +94,9 @@ export class AppointmentService {
 
   async createType(createAppointmentTypeDto: CreateAppointmentTypeDto) {
     const createdType = new this.appointmentTypeModel(createAppointmentTypeDto);
-    return createdType.save();
+    console.log(createdType);
+
+    return await createdType.save();
   }
 
   async create(createAppointmentDto: CreateAppointmentDto) {

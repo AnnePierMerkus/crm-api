@@ -22,7 +22,10 @@ export class UserService {
     const { email } = createUserDto;
     const user = await this.userModel.findOne({ email });
     if (user) {
-      throw new HttpException('user already exists', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'User with this e-mail already exists, please use a different e-mail address.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const address = new this.userAddressModel(createUserDto.address);
@@ -44,7 +47,10 @@ export class UserService {
     const { email } = RegisterDTO;
     const user = await this.userModel.findOne({ email });
     if (user) {
-      throw new HttpException('user already exists', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'User with this e-mail already exists, please use a different e-mail address.',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const createdUser = new this.userModel(RegisterDTO);
