@@ -1,13 +1,14 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AppointmentTypeInterface } from './interfaces/appointment.type.interface';
 import { AppointmentInterface } from './interfaces/appointment.interface';
-import { CreateAppointmentTypeDto } from './dto/appointment-type.dto';
+import { CreateAppointmentTypeDto, UpdateAppointmentTypeDto } from "./dto/appointment-type.dto";
 import {
   CreateAppointmentDto,
   EmployeeAppointmentsDto,
 } from './dto/appointment.dto';
+import { UpdatedCustomerDto } from "../customer/dto/customer.dto";
 
 @Injectable()
 export class AppointmentService {
@@ -97,6 +98,39 @@ export class AppointmentService {
     console.log(createdType);
 
     return await createdType.save();
+  }
+
+  async updateType(
+    id: string,
+    updatedAppointmentTypeDTO: UpdateAppointmentTypeDto,
+  ) {
+    const appointmentType = await this.appointmentTypeModel.findByIdAndUpdate(
+      id,
+      updatedAppointmentTypeDTO,
+    );
+
+    if (!appointmentType) {
+      throw new NotFoundException(`Appointment Type #${id} not found`);
+    }
+
+    return this.findTypeById(id);
+  }
+
+  async findTypeById(id: string) {
+    const appointmentType = await this.appointmentTypeModel.findById(id).exec();
+    if (!appointmentType) {
+      throw new NotFoundException(`Appointment Type #${id} not found`);
+    }
+    return appointmentType;
+  }
+  async deleteType(id: string) {
+    const appointmentType =
+      await this.appointmentTypeModel.findByIdAndDelete(id);
+    if (!appointmentType) {
+      throw new NotFoundException(`Appointment Type #${id} not found`);
+    }
+
+    return appointmentType;
   }
 
   async create(createAppointmentDto: CreateAppointmentDto) {

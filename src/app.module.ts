@@ -7,7 +7,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { CustomerModule } from './customer/customer.module';
 import { AppointmentModule } from './appointment/appointment.module';
-import { MassageTypeModule } from './massage-types/massage-types.module';
+import { RolesAndPermissionModule } from './roles-and-permission/roles-and-permission.module';
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { MassageTypeModule } from './massage-types/massage-types.module';
     AuthModule,
     CustomerModule,
     AppointmentModule,
-    MassageTypeModule,
+    RolesAndPermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,6 +1,10 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { AppointmentService } from './appointment.service';
-import { CreateAppointmentTypeDto } from './dto/appointment-type.dto';
+import {
+  CreateAppointmentTypeDto,
+  AppointmentTypeResponseDTO,
+  UpdateAppointmentTypeDto,
+} from './dto/appointment-type.dto';
 import { CreateAppointmentDto } from './dto/appointment.dto';
 
 @Controller('appointment')
@@ -17,6 +21,25 @@ export class AppointmentController {
       createdAppointmentType: type,
     };
   }
+
+  @Put('type/:id')
+  async updateType(
+    @Param('id') id: string,
+    @Body() updatedAppointmentTypeDTO: UpdateAppointmentTypeDto,
+  ): Promise<AppointmentTypeResponseDTO> {
+    const appointmentType = await this.appointmentService.updateType(
+      id,
+      updatedAppointmentTypeDTO,
+    );
+    return { success: true, appointmentType: appointmentType };
+  }
+
+  @Delete('/type/:id')
+  async deleteType(@Param('id') id: string): Promise<AppointmentTypeResponseDTO> {
+    return { success: true, appointmentType: await this.appointmentService.deleteType(id) };
+
+  }
+
   @Post('/create')
   async create(@Body() createAppointmentDto: CreateAppointmentDto) {
     const type = await this.appointmentService.create(createAppointmentDto);
