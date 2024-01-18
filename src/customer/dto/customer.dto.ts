@@ -16,4 +16,3 @@ export class CreateCustomerDto {
 }
 
 export class UpdatedCustomerDto extends PartialType(CreateCustomerDto) {}
-

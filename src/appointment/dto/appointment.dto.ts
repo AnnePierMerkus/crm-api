@@ -1,11 +1,14 @@
-import { Schema } from 'mongoose';
-import { UpdatedCustomerDto } from '../../customer/dto/customer.dto';
+import { Schema, Types } from 'mongoose';
+import {
+  CreateCustomerDto,
+  UpdatedCustomerDto,
+} from '../../customer/dto/customer.dto';
 import { UserDto } from '../../user/dto/user.dto';
 
 export interface CreateAppointmentDto {
   start: Date;
   end: Date;
-  customer: Schema.Types.ObjectId;
+  customer: Schema.Types.ObjectId | CreateCustomerDto;
   employee: Schema.Types.ObjectId;
   discount: number;
   canceled: boolean;
@@ -15,6 +18,7 @@ export interface CreateAppointmentDto {
 export interface EmployeeAppointmentsDto {
   employee?: UserDto;
   appointments?: {
+    _id: Types.ObjectId;
     start: Date;
     end: Date;
     customer?: UpdatedCustomerDto;
@@ -22,4 +26,16 @@ export interface EmployeeAppointmentsDto {
       name: string;
     };
   }[];
+}
+
+export interface PatchAppointmentDto {
+  start?: Date;
+  end?: Date;
+  employee?: Schema.Types.ObjectId;
+  discount?: number;
+  type?: Schema.Types.ObjectId;
+}
+
+export interface CancelAppointementDto {
+  canceled: boolean;
 }

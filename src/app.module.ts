@@ -8,6 +8,9 @@ import { AuthModule } from './auth/auth.module';
 import { CustomerModule } from './customer/customer.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { RolesAndPermissionModule } from './roles-and-permission/roles-and-permission.module';
+import { InvoiceModule } from './invoice/invoice.module';
+import { EmployeeSalaryModule } from './employee-salary/employee-salary.module';
+import { EmployeeIncomeModule } from './employee-income/employee-income.module';
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import { RolesAndPermissionModule } from './roles-and-permission/roles-and-permi
     CustomerModule,
     AppointmentModule,
     RolesAndPermissionModule,
+    InvoiceModule,
+    EmployeeSalaryModule,
+    EmployeeIncomeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

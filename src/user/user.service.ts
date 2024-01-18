@@ -8,6 +8,7 @@ import { LoginDTO } from 'src/auth/dto/login.dto';
 import { Payload } from 'src/types/payload';
 import { UserDto } from './dto/user.dto';
 import { UserAddressInterface } from './interfaces/user-address.interface';
+import { AppointmentService } from 'src/appointment/appointment.service';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     private userModel: Model<UserInterface>,
     @InjectModel('UserAddress')
     private userAddressModel: Model<UserAddressInterface>,
+    private appointmentService: AppointmentService,
   ) {}
 
   async newCreate(createUserDto: UserDto) {
@@ -103,5 +105,35 @@ export class UserService {
     );
 
     return userData;
+  }
+
+  async findById(id: string) {
+    const user = await this.userModel.findById(id).populate('address').exec();
+
+    if (!user) {
+      throw new HttpException('No user found', HttpStatus.BAD_REQUEST);
+    }
+
+    return this.sanitizeUser(user);
+  }
+
+  async findAppointments(id: string, invoice: boolean = false) {
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new HttpException('No user found', HttpStatus.BAD_REQUEST);
+    }
+
+    return await this.appointmentService.findByEmployeeId(user._id, invoice);
+  }
+
+  async setPassword(email: string, newPassword: string): Promise<boolean> {
+    const user = await this.userModel.findOne({ email: email });
+    if (!user) throw new HttpException('No user found', HttpStatus.NOT_FOUND);
+
+    user.password = newPassword;
+
+    await user.save();
+    return true;
   }
 }

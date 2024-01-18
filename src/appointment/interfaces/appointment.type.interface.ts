@@ -2,7 +2,9 @@ import { Document } from 'mongoose';
 
 export interface AppointmentTypeInterface extends Document {
   name: string;
+}
+export interface AppointmentTypePriceInterface extends Document {
   price: number;
-  newPrice?: number | null;
-  activationDate?: Date | null;
+  activeFrom: Date;
+  appointmentType: AppointmentTypeInterface;
 }

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
 import { RegisterDTO } from 'src/user/dto/register.dto';
 import { UserService } from 'src/user/user.service';
@@ -46,5 +54,36 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async profile(/*@Req() req: Request*/) {
     return { success: true };
+  }
+
+  @Post('forgotpassword')
+  async forgotPassword(@Body() body: { email: string }) {
+    return {
+      success: await this.authService.forgotPassword(body.email),
+    };
+  }
+
+  @Post('resetpassword')
+  async resetPassword(
+    @Body() resetPassword: { newPasswordToken: string; newPassword: string },
+  ) {
+    console.debug(resetPassword);
+    const forgottenPasswordModel =
+      await this.authService.getForgottenPasswordModel(
+        resetPassword.newPasswordToken,
+      );
+    if (!forgottenPasswordModel) {
+      throw new HttpException('Token not found', HttpStatus.NOT_FOUND);
+    }
+    const isNewPasswordChanged = await this.userService.setPassword(
+      forgottenPasswordModel.email,
+      resetPassword.newPassword,
+    );
+
+    if (forgottenPasswordModel) {
+      await forgottenPasswordModel.deleteOne();
+    }
+
+    return { success: isNewPasswordChanged };
   }
 }

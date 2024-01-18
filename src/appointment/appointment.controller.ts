@@ -1,44 +1,31 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import {
-  CreateAppointmentTypeDto,
-  AppointmentTypeResponseDTO,
-  UpdateAppointmentTypeDto,
+  CreateAppointmentDto,
+  PatchAppointmentDto,
+} from './dto/appointment.dto';
+import { AppointmentTypeService } from './appointment-type.service';
+import {
+  CreateAppointmentTypeDTO,
+  UpdateNameAppointmentTypeDTO,
+  UpdatePriceAppointmentTypeDTO,
 } from './dto/appointment-type.dto';
-import { CreateAppointmentDto } from './dto/appointment.dto';
 
 @Controller('appointment')
 export class AppointmentController {
-  constructor(private appointmentService: AppointmentService) {}
-
-  @Post('/type/create')
-  async createType(@Body() createAppointmentTypeDto: CreateAppointmentTypeDto) {
-    const type = await this.appointmentService.createType(
-      createAppointmentTypeDto,
-    );
-    return {
-      success: true,
-      createdAppointmentType: type,
-    };
-  }
-
-  @Put('type/:id')
-  async updateType(
-    @Param('id') id: string,
-    @Body() updatedAppointmentTypeDTO: UpdateAppointmentTypeDto,
-  ): Promise<AppointmentTypeResponseDTO> {
-    const appointmentType = await this.appointmentService.updateType(
-      id,
-      updatedAppointmentTypeDTO,
-    );
-    return { success: true, appointmentType: appointmentType };
-  }
-
-  @Delete('/type/:id')
-  async deleteType(@Param('id') id: string): Promise<AppointmentTypeResponseDTO> {
-    return { success: true, appointmentType: await this.appointmentService.deleteType(id) };
-
-  }
+  constructor(
+    private appointmentService: AppointmentService,
+    private appointmentTypeService: AppointmentTypeService,
+  ) {}
 
   @Post('/create')
   async create(@Body() createAppointmentDto: CreateAppointmentDto) {
@@ -57,14 +44,6 @@ export class AppointmentController {
     };
   }
 
-  @Get('/type')
-  async findAllTypes() {
-    return {
-      success: true,
-      types: await this.appointmentService.findAllTypes(),
-    };
-  }
-
   @Get('/employees')
   async employeesFindAll(
     @Query('startDate') startDate?: string,
@@ -78,4 +57,106 @@ export class AppointmentController {
       }),
     };
   }
+
+  @Patch('/:id')
+  async editAppointent(
+    @Param('id') id: string,
+    @Body() patchAppointementDto: PatchAppointmentDto,
+  ) {
+    console.debug(id, patchAppointementDto);
+    return {
+      success: true,
+      appointment: await this.appointmentService.patchAppointment(
+        id,
+        patchAppointementDto,
+      ),
+    };
+  }
+
+  @Delete('/:id')
+  async cancelAppointment(@Param('id') id: string) {
+    return {
+      success: true,
+      appointment: await this.appointmentService.cancelAppointment(id),
+    };
+  }
+
+  @Get('/type')
+  async findAllTypes() {
+    return {
+      success: true,
+      types: await this.appointmentTypeService.findAll(),
+    };
+  }
+
+  @Get('/type/:id/prices')
+  async findAllTypePrices(@Param('id') id: string) {
+    return {
+      success: true,
+      prices: await this.appointmentTypeService.findAllPrices(id),
+    };
+  }
+
+  @Post('/type/create')
+  async createType(@Body() createAppointmentTypeDto: CreateAppointmentTypeDTO) {
+    const type = await this.appointmentTypeService.create(
+      createAppointmentTypeDto,
+    );
+    return {
+      success: true,
+      createdAppointmentType: type,
+    };
+  }
+
+  @Patch('type/:id/price')
+  async updateTypePrice(
+    @Param('id') id: string,
+    @Body() updatePriceAppointmentTypeDTO: UpdatePriceAppointmentTypeDTO,
+  ) {
+    const type = await this.appointmentTypeService.updatePrice(
+      id,
+      updatePriceAppointmentTypeDTO,
+    );
+    return {
+      success: true,
+      updatedAppointmentType: type,
+    };
+  }
+
+  @Patch('type/:id/name')
+  async updateTypeName(
+    @Param('id') id: string,
+    @Body() updateNameAppointmentTypeDTO: UpdateNameAppointmentTypeDTO,
+  ) {
+    const type = await this.appointmentTypeService.updateName(
+      id,
+      updateNameAppointmentTypeDTO.name,
+    );
+    return {
+      success: true,
+      updatedAppointmentType: type,
+    };
+  }
+
+  // @Put('type/:id')
+  // async updateType(
+  //   @Param('id') id: string,
+  //   @Body() updatedAppointmentTypeDTO: UpdateAppointmentTypeDto,
+  // ): Promise<AppointmentTypeResponseDTO> {
+  //   const appointmentType = await this.appointmentService.updateType(
+  //     id,
+  //     updatedAppointmentTypeDTO,
+  //   );
+  //   return { success: true, appointmentType: appointmentType };
+  // }
+
+  // @Delete('/type/:id')
+  // async deleteType(
+  //   @Param('id') id: string,
+  // ): Promise<AppointmentTypeResponseDTO> {
+  //   return {
+  //     success: true,
+  //     appointmentType: await this.appointmentService.deleteType(id),
+  //   };
+  // }
 }

@@ -9,4 +9,5 @@ export interface UserDto {
     country: string;
   };
   phoneNumber: string;
+  _id?: string;
 }

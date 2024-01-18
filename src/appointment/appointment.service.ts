@@ -1,14 +1,19 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { AppointmentTypeInterface } from './interfaces/appointment.type.interface';
 import { AppointmentInterface } from './interfaces/appointment.interface';
-import { CreateAppointmentTypeDto, UpdateAppointmentTypeDto } from "./dto/appointment-type.dto";
 import {
   CreateAppointmentDto,
   EmployeeAppointmentsDto,
 } from './dto/appointment.dto';
-import { UpdatedCustomerDto } from "../customer/dto/customer.dto";
+import { CustomerService } from 'src/customer/customer.service';
 
 @Injectable()
 export class AppointmentService {
@@ -17,6 +22,7 @@ export class AppointmentService {
     private appointmentTypeModel: Model<AppointmentTypeInterface>,
     @InjectModel('Appointment')
     private appointmentModel: Model<AppointmentInterface>,
+    private customerService: CustomerService,
   ) {}
 
   async findAll() {
@@ -42,32 +48,44 @@ export class AppointmentService {
     });
   }
 
-  async findAllTypes() {
-    const types = await this.appointmentTypeModel.find().exec();
+  async findByEmployeeId(id: string, invoice: boolean = false) {
+    const currentDate = new Date();
+    const appointments = await this.appointmentModel
+      .find({
+        employee: id,
+        end: invoice ? { $lt: currentDate } : { $gt: currentDate },
+      })
+      .populate('customer')
+      .populate('type')
+      .exec();
 
-    if (!types) {
-      throw new HttpException('No types found', HttpStatus.BAD_REQUEST);
+    if (!appointments) {
+      throw new HttpException('No appointments found', HttpStatus.BAD_REQUEST);
     }
 
-    return types;
+    return appointments;
   }
 
   async employeeFindBy({
-                         startDate,
-                         endDate,
-                       }: {
+    startDate,
+    endDate,
+  }: {
     startDate?: string;
     endDate?: string;
   }) {
     const employees: EmployeeAppointmentsDto[] = [];
 
+    const currentDate = new Date();
     const appointments = await this.appointmentModel
-      .find({ start: { $gte: startDate, $lt: endDate } })
+      .find({
+        start: { $gte: startDate, $lt: endDate },
+        end: { $gte: currentDate },
+        canceled: { $ne: true },
+      })
       .populate('employee')
       .populate('customer')
       .populate('type')
       .exec();
-
     if (!appointments) {
       throw new HttpException('No appointments found', HttpStatus.BAD_REQUEST);
     }
@@ -78,63 +96,96 @@ export class AppointmentService {
         (e) => e.employee.email == appointment.employee.email,
       );
       if (employee) {
-        employee.appointments.push({ start, end, customer, type });
+        employee.appointments.push({
+          _id: appointment.id,
+          start,
+          end,
+          customer,
+          type,
+        });
       } else {
         const { firstName, lastName, email, phoneNumber } =
           appointment.employee;
 
         employees.push({
-          employee: { firstName, lastName, email, phoneNumber },
-          appointments: [{ start, end, customer, type }],
+          employee: {
+            _id: appointment.employee.id,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+          },
+          appointments: [{ _id: appointment.id, start, end, customer, type }],
         });
       }
     });
-
     return employees;
   }
 
-  async createType(createAppointmentTypeDto: CreateAppointmentTypeDto) {
-    const createdType = new this.appointmentTypeModel(createAppointmentTypeDto);
-    console.log(createdType);
-
-    return await createdType.save();
-  }
-
-  async updateType(
-    id: string,
-    updatedAppointmentTypeDTO: UpdateAppointmentTypeDto,
-  ) {
-    const appointmentType = await this.appointmentTypeModel.findByIdAndUpdate(
-      id,
-      updatedAppointmentTypeDTO,
-    );
-
-    if (!appointmentType) {
-      throw new NotFoundException(`Appointment Type #${id} not found`);
+  async findById(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Invalid appointment ID: ${id}`);
     }
 
-    return this.findTypeById(id);
+    const appointment = await this.appointmentModel
+      .findById(id)
+      .populate('employee')
+      .populate('customer')
+      .populate('type')
+      .exec();
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment #${id} not found`);
+    }
+    return appointment;
   }
 
-  async findTypeById(id: string) {
-    const appointmentType = await this.appointmentTypeModel.findById(id).exec();
-    if (!appointmentType) {
-      throw new NotFoundException(`Appointment Type #${id} not found`);
-    }
-    return appointmentType;
-  }
-  async deleteType(id: string) {
-    const appointmentType =
-      await this.appointmentTypeModel.findByIdAndDelete(id);
-    if (!appointmentType) {
-      throw new NotFoundException(`Appointment Type #${id} not found`);
-    }
-
-    return appointmentType;
+  async findPastAppointments() {
+    const currentDate = new Date();
+    const appointments = await this.appointmentModel
+      .find({ end: { $lt: currentDate }, canceled: false })
+      .exec();
+    return appointments;
   }
 
   async create(createAppointmentDto: CreateAppointmentDto) {
+    if (
+      typeof createAppointmentDto.customer === 'object' &&
+      'firstName' in createAppointmentDto.customer
+    ) {
+      const createdCustomer = await this.customerService.create(
+        createAppointmentDto.customer,
+      );
+      createAppointmentDto.customer = createdCustomer._id;
+    }
     const createdAppointment = new this.appointmentModel(createAppointmentDto);
     return createdAppointment.save();
+  }
+
+  async patchAppointment(id: string, patchAppointmentDto: any) {
+    const appointment = await this.appointmentModel.findByIdAndUpdate(
+      id,
+      patchAppointmentDto,
+    );
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment #${id} not found`);
+    }
+
+    return appointment;
+  }
+
+  async cancelAppointment(id: string) {
+    const appointment = await this.appointmentModel.findByIdAndUpdate(
+      id,
+      { canceled: true },
+      { new: true },
+    );
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment #${id} not found`);
+    }
+
+    return appointment;
   }
 }
