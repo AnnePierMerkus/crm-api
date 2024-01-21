@@ -46,7 +46,7 @@ export class RolesAndPermissionService {
   }
 
   async delete(id: string) {
-    const role = await this.rolesAndPermissionModel.findByIdAndDelete(id);
+    const role = await this.rolesAndPermissionModel.findByIdAndRemove(id);
     if (!role) {
       throw new NotFoundException(`Role #${id} not found`);
     }

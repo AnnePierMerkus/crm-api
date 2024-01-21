@@ -45,7 +45,7 @@ export class CustomerService {
   }
 
   async delete(id: string) {
-    const customer = await this.customerModel.findByIdAndDelete(id);
+    const customer = await this.customerModel.findByIdAndRemove(id);
     if (!customer) {
       throw new NotFoundException(`Customer #${id} not found`);
     }

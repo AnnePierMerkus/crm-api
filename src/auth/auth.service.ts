@@ -94,7 +94,7 @@ export class AuthService {
   async deleteForgottenPasswordModel(
     email: string,
   ): Promise<ForgottenPassword> {
-    return await this.forgottenPasswordModel.findOneAndDelete({
+    return await this.forgottenPasswordModel.findOneAndRemove({
       email: email,
     });
   }

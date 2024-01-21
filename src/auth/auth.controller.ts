@@ -67,7 +67,6 @@ export class AuthController {
   async resetPassword(
     @Body() resetPassword: { newPasswordToken: string; newPassword: string },
   ) {
-    console.debug(resetPassword);
     const forgottenPasswordModel =
       await this.authService.getForgottenPasswordModel(
         resetPassword.newPasswordToken,

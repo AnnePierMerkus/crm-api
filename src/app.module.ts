@@ -9,8 +9,8 @@ import { CustomerModule } from './customer/customer.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { RolesAndPermissionModule } from './roles-and-permission/roles-and-permission.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { EmployeeWageModule } from './employee-wage/employee-wage.module';
 import { EmployeeSalaryModule } from './employee-salary/employee-salary.module';
-import { EmployeeIncomeModule } from './employee-income/employee-income.module';
 
 @Module({
   imports: [
@@ -24,8 +24,8 @@ import { EmployeeIncomeModule } from './employee-income/employee-income.module';
     AppointmentModule,
     RolesAndPermissionModule,
     InvoiceModule,
+    EmployeeWageModule,
     EmployeeSalaryModule,
-    EmployeeIncomeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

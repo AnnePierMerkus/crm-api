@@ -63,7 +63,6 @@ export class AppointmentController {
     @Param('id') id: string,
     @Body() patchAppointementDto: PatchAppointmentDto,
   ) {
-    console.debug(id, patchAppointementDto);
     return {
       success: true,
       appointment: await this.appointmentService.patchAppointment(

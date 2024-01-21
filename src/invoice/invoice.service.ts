@@ -15,7 +15,7 @@ export class InvoiceService {
   constructor(
     @InjectModel('Invoice') private invoiceModel: Model<InvoiceInterface>,
     private appointmentService: AppointmentService,
-    private appointmentTypeService: AppointmentTypeService,
+    private appointmentTypeService: AppointmentTypeService
   ) {}
 
   generateUnique6CharInt(): number {
@@ -24,18 +24,7 @@ export class InvoiceService {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  getTimeDifference(date1, date2) {
-    const diffInMilliseconds = Math.abs(date2 - date1);
-    const hours = Math.floor(diffInMilliseconds / 3600000); // 1 Hour = 36000 Milliseconds
-    const minutes = Math.floor((diffInMilliseconds % 3600000) / 60000); // 1 Minutes = 60000 Milliseconds
-    const formattedTime =
-      hours.toString().padStart(2, '0') +
-      ':' +
-      minutes.toString().padStart(2, '0');
-    return formattedTime;
-  }
-
-  async create(createInvoiceDto: CreateInvoiceDto): Promise<InvoiceDto> {
+  async create(createInvoiceDto: CreateInvoiceDto): Promise<InvoiceInterface> {
     const appointment = await this.appointmentService.findById(
       createInvoiceDto.appointment,
     );
@@ -63,7 +52,7 @@ export class InvoiceService {
       start: appointment.start,
       end: appointment.end,
       customerName:
-        appointment.customer.firstName + ' ' + appointment.customer.lastName,
+      appointment.customer ? appointment.customer.firstName + ' ' + appointment.customer.lastName : "Anonymous",
       price: price,
     }).save();
 
@@ -71,21 +60,7 @@ export class InvoiceService {
       throw new NotFoundException('Invoice not created');
     }
 
-    const invoiceDto: InvoiceDto = {
-      number: invoice.number,
-      appointment: invoice.appointment._id,
-      date: invoice.start,
-      time: this.getTimeDifference(invoice.start, invoice.end),
-      price: invoice.price,
-      customerName: invoice.customerName,
-      employeeId: invoice.appointment.employee._id,
-      employeeName:
-        invoice.appointment.employee.firstName +
-        ' ' +
-        invoice.appointment.employee.lastName,
-    };
-
-    return invoiceDto;
+    return invoice;
   }
 
   async createInvoicesForPastAppointments(): Promise<number> {
@@ -108,12 +83,13 @@ export class InvoiceService {
       await this.create({
         appointment: appointment._id,
       });
+
       invoicesCreated++;
     }
     return invoicesCreated;
   }
 
-  async findAllBy(query: QueryInvoiceDto): Promise<InvoiceDto[]> {
+  async findAllBy(query: QueryInvoiceDto): Promise<InvoiceInterface[]> {
     const findQuery = {};
     if (query.start) {
       findQuery['start'] = { $gte: query.start };
@@ -137,20 +113,20 @@ export class InvoiceService {
       throw new NotFoundException('Invoices not found');
     }
 
-    const invoiceDtos: InvoiceDto[] = invoices.map((invoice) => {
-      return {
-        number: invoice.number,
-        appointment: invoice.appointment._id,
-        date: invoice.start,
-        time: this.getTimeDifference(invoice.start, invoice.end),
-        price: invoice.price,
-        customerName: invoice.customerName,
-        employeeId: invoice.appointment.employee._id,
-        employeeName:
-          invoice.employee.firstName + ' ' + invoice.employee.lastName,
-      };
-    });
+return invoices;
+  }
 
-    return invoiceDtos;
+  async findById(id: string): Promise<InvoiceInterface> {
+    const invoice = await this.invoiceModel
+      .findById(id)
+      .populate('appointment')
+      .populate('employee')
+      .exec();
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    return invoice;
   }
 }

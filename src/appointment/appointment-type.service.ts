@@ -193,7 +193,7 @@ export class AppointmentTypeService {
       );
     }
 
-    const price = await this.appointmentTypePriceModel
+    let price = await this.appointmentTypePriceModel
       .findOne({
         appointmentType: type._id,
         activeFrom: {
@@ -204,10 +204,21 @@ export class AppointmentTypeService {
       .exec();
 
     if (!price) {
-      throw new HttpException(
-        'No appointment type price found',
-        HttpStatus.BAD_REQUEST,
-      );
+      price = await this.appointmentTypePriceModel
+        .findOne({
+          appointmentType: type._id,
+        })
+        .sort({
+          activeFrom: 1,
+        })
+        .exec();
+
+      if (!price) {
+        throw new HttpException(
+          'No appointment type price found',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     return price.price;

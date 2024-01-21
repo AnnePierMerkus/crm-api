@@ -1,18 +1,21 @@
 export interface EmployeeSalaryDto {
-  ID: string;
-  type: string;
-  amount: number;
-  activeFrom: Date;
-  isActive: boolean;
+    ID: string;
+    invoiceNumber?: string;
+    amount: number;
+    description: string;
+    date: Date;
 }
 
 export interface CreateEmployeeSalaryDto {
-  employee: string;
-  type: string;
-  amount: number;
-  activeFrom: Date;
+    invoice: string;
+    employee: string;
+    amount: number;
+    description: string;
+    date: Date;
 }
 
 export interface QueryEmployeeSalaryDto {
-  employee?: string;
+    employee?: string;
+    start?: Date;
+    end?: Date;
 }
